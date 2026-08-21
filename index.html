@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WavOn — WAV mixes onto videos, files stay here</title>
+    <meta
+      name="description"
+      content="Drop finished WAV mixes and the matching videos. Get new files with the mix swapped in. Nothing is uploaded."
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1c1917;
+        --muted: #57534e;
+        --line: #e7e5e4;
+        --bg: #fafaf9;
+        --card: #ffffff;
+        --accent: #0f766e;
+        --warn: #9a3412;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 5rem;
+      }
+      h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.75rem; }
+      h2 { font-size: 1.05rem; margin: 2rem 0 0.5rem; }
+      .kicker { color: var(--muted); font-size: 0.875rem; font-weight: 600; margin: 0 0 0.75rem; }
+      .lede { color: var(--muted); font-size: 1.125rem; max-width: 36rem; }
+      .drop {
+        margin: 2rem 0 1rem;
+        border: 1px dashed #d6d3d1;
+        border-radius: 1rem;
+        background: var(--card);
+        padding: 2rem 1.25rem;
+        text-align: center;
+      }
+      .drop.over { border-color: var(--accent); background: #f0fdfa; }
+      button, .btn {
+        appearance: none;
+        border: 0;
+        background: var(--ink);
+        color: white;
+        border-radius: 0.6rem;
+        padding: 0.6rem 1rem;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.secondary { background: white; color: var(--ink); border: 1px solid var(--line); }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      .meta { color: var(--muted); font-size: 0.875rem; }
+      .row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; justify-content: center; }
+      .pairs { display: grid; gap: 0.6rem; margin: 1rem 0; }
+      .pairs article {
+        border: 1px solid var(--line);
+        border-radius: 0.85rem;
+        padding: 0.85rem 1rem;
+        background: var(--card);
+        display: grid;
+        gap: 0.15rem;
+      }
+      .pairs strong { font-size: 0.95rem; }
+      .cards { display: grid; gap: 0.75rem; grid-template-columns: 1fr; }
+      @media (min-width: 640px) { .cards { grid-template-columns: 1fr 1fr 1fr; } }
+      .cards article {
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        padding: 1rem;
+        background: var(--card);
+      }
+      .cards h2 { font-size: 1rem; margin: 0 0 0.4rem; }
+      .cards p { margin: 0; color: var(--muted); font-size: 0.875rem; }
+      footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.875rem; }
+      a { color: inherit; }
+      .warn { color: var(--warn); font-size: 0.875rem; }
+      input[type="file"] { display: none; }
+      progress { width: 100%; height: 0.65rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="kicker">WavOn</p>
+      <h1>You already said the problem out loud.</h1>
+      <p class="lede">
+        “Is there a simple tool for adding multiple audio files to multiple videos?”
+        Drop finished WAV mixes and the matching clips. Video is copied, mix is swapped in.
+        Nothing is uploaded.
+      </p>
+
+      <div class="drop" id="drop">
+        <p><strong>Drop videos + WAV / AIFF / MP3 / M4A</strong></p>
+        <p class="meta">Pairs by filename. 80 MB each, 6 videos. Files stay on this device.</p>
+        <div class="row">
+          <button type="button" id="pick">Choose files</button>
+          <button type="button" class="secondary" id="clear">Clear</button>
+        </div>
+        <input
+          id="file"
+          type="file"
+          multiple
+          accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.m4v,.webm,.mkv,audio/wav,audio/x-wav,audio/aiff,audio/mpeg,audio/mp4,.wav,.aif,.aiff,.mp3,.m4a,.aac"
+        />
+      </div>
+
+      <p class="meta" id="status">Waiting for videos and mixes.</p>
+      <p class="warn" id="error" hidden></p>
+      <progress id="bar" hidden value="0" max="100"></progress>
+      <div class="pairs" id="pairs"></div>
+
+      <div class="row" style="justify-content: flex-start;">
+        <button type="button" id="run" disabled>Swap audio &amp; download zip</button>
+      </div>
+
+      <section class="cards" style="margin-top: 2.5rem;">
+        <article>
+          <h2>The declaration is the qualifier</h2>
+          <p>If you export a WAV mix, then export the video again from the DAW, you already know you need this.</p>
+        </article>
+        <article>
+          <h2>The muxed file is the product</h2>
+          <p>Video stream is copied. New mix is encoded to AAC and laid on. Same names, <code>-mix</code> suffix.</p>
+        </article>
+        <article>
+          <h2>Built for the reply</h2>
+          <p>Someone posted the pain. This page is the answer. Try it in this tab, then send the URL back.</p>
+        </article>
+      </section>
+
+      <section>
+        <h2>Who this is for</h2>
+        <ul class="meta">
+          <li>A folder of picture-lock MP4s and finished WAV stems</li>
+          <li>Replacing scratch audio after a Nuendo or Pro Tools mix</li>
+          <li>Batch mux without opening CapCut, iMovie, or the DAW again</li>
+        </ul>
+        <p class="warn">Copy-mux only. Weird codecs may fail. First run downloads a local ffmpeg.wasm (~25 MB) into this tab.</p>
+      </section>
+
+      <footer>
+        <a href="https://github.com/davidlifschitz/gtm-wavon">Source</a>
+        · Ask:
+        <a href="https://gearspace.com/threads/is-there-a-simple-tool-for-adding-multiple-audio-files-to-multiple-videos.1467239/">Gearspace WAV-on-video</a>
+        · 80 MB. No account. No cloud copy.
+      </footer>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
