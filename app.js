@@ -108,7 +108,7 @@ function render() {
   els.pairs.innerHTML = pairs
     .map((p) => {
       const ok = Boolean(p.audio);
-      return `<article>
+      return `<article role="listitem">
         <strong>${escapeHtml(p.video.name)}</strong>
         <span class="meta">${ok ? `+ ${escapeHtml(p.audio.name)}` : "no matching mix"}</span>
       </article>`;
