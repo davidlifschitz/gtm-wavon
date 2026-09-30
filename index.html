@@ -107,15 +107,16 @@
         <input
           id="file"
           type="file"
+          aria-label="Choose videos and mixes"
           multiple
           accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.m4v,.webm,.mkv,audio/wav,audio/x-wav,audio/aiff,audio/mpeg,audio/mp4,.wav,.aif,.aiff,.mp3,.m4a,.aac"
         />
       </div>
 
-      <p class="meta" id="status">Waiting for videos and mixes.</p>
-      <p class="warn" id="error" hidden></p>
-      <progress id="bar" hidden value="0" max="100"></progress>
-      <div class="pairs" id="pairs"></div>
+      <p class="meta" id="status" role="status">Waiting for videos and mixes.</p>
+      <p class="warn" id="error" role="alert" hidden></p>
+      <progress id="bar" aria-label="Muxing progress" hidden value="0" max="100"></progress>
+      <div class="pairs" id="pairs" role="list" aria-label="Video and mix pairs"></div>
 
       <div class="row" style="justify-content: flex-start;">
         <button type="button" id="run" disabled>Swap audio &amp; download zip</button>
