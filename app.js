@@ -178,6 +178,7 @@ async function muxOne(ff, video, audio) {
   await ff.writeFile(inV, await fetchFile(video));
   await ff.writeFile(inA, await fetchFile(audio));
   const code = await ff.exec([
+    "-y",
     "-i",
     inV,
     "-i",
@@ -197,14 +198,13 @@ async function muxOne(ff, video, audio) {
     "+faststart",
     out,
   ]);
-  if (code !== 0) {
-    throw new Error(`ffmpeg failed on ${video.name}`);
+  try {
+    if (code !== 0) throw new Error(`ffmpeg failed on ${video.name}`);
+    const data = await ff.readFile(out);
+    return new Blob([data.buffer], { type: "video/mp4" });
+  } finally {
+    for (const name of [inV, inA, out]) await ff.deleteFile(name).catch(() => {});
   }
-  const data = await ff.readFile(out);
-  await ff.deleteFile(inV);
-  await ff.deleteFile(inA);
-  await ff.deleteFile(out);
-  return new Blob([data.buffer], { type: "video/mp4" });
 }
 
 async function run() {
@@ -218,12 +218,20 @@ async function run() {
   try {
     const ff = await loadFfmpeg();
     const zip = new JSZip();
+    const failed = [];
+    let done = 0;
     for (let i = 0; i < pairs.length; i++) {
       const { video, audio } = pairs[i];
       els.status.textContent = `Muxing ${i + 1}/${pairs.length}: ${video.name}`;
-      const blob = await muxOne(ff, video, audio);
-      zip.file(outName(video.name), blob);
+      try {
+        zip.file(outName(video.name), await muxOne(ff, video, audio));
+        done += 1;
+      } catch (err) {
+        failed.push(video.name);
+      }
     }
+    if (failed.length) setError(`Could not mux: ${failed.join(", ")}.`);
+    if (!done) throw new Error(`Could not mux: ${failed.join(", ")}.`);
     els.status.textContent = "Zipping…";
     const packed = await zip.generateAsync({ type: "blob" });
     const a = document.createElement("a");
@@ -231,7 +239,7 @@ async function run() {
     a.download = "wavon-mixes.zip";
     a.click();
     URL.revokeObjectURL(a.href);
-    els.status.textContent = `${pairs.length} muxed file${pairs.length === 1 ? "" : "s"} · stayed in this tab`;
+    els.status.textContent = `${done} muxed file${done === 1 ? "" : "s"} · stayed in this tab`;
     els.bar.value = 100;
   } catch (err) {
     setError(err && err.message ? err.message : String(err));

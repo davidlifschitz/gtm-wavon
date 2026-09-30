@@ -8,7 +8,7 @@ export class FFmpeg {
   async load() {}
   async writeFile(name, data) { this.files.set(name, data); }
   async exec(args) {
-    const src = this.files.get(args[1]);
+    const src = this.files.get(args[args.indexOf("-i") + 1]);
     calls.push({ args, video: src?.name });
     return fail.has(src?.name) ? 1 : 0;
   }
