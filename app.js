@@ -125,20 +125,20 @@ function escapeHtml(s) {
 }
 
 function addFiles(list) {
-  setError("");
+  const skipped = [];
   for (const file of list) {
     if (file.size > MAX_BYTES) {
-      setError(`${file.name} is over 80 MB.`);
+      skipped.push(`${file.name} is over 80 MB`);
       continue;
     }
     const kind = kindOf(file);
     if (!kind) {
-      setError(`${file.name} is not a video or mix I know.`);
+      skipped.push(`${file.name} is not a video or mix I know`);
       continue;
     }
     if (kind === "video") {
       if (videos.length >= MAX_VIDEOS) {
-        setError(`Cap is ${MAX_VIDEOS} videos.`);
+        skipped.push(`${file.name} is past the ${MAX_VIDEOS}-video cap`);
         continue;
       }
       videos.push(file);
@@ -146,6 +146,7 @@ function addFiles(list) {
       audios.push(file);
     }
   }
+  setError(skipped.length ? `Skipped: ${skipped.join("; ")}.` : "");
   render();
 }
 
@@ -169,6 +170,14 @@ function outName(videoName) {
   const i = videoName.lastIndexOf(".");
   const base = i >= 0 ? videoName.slice(0, i) : videoName;
   return `${base}-mix.mp4`;
+}
+
+// take.mov and take.mp4 would both become take-mix.mp4 and one would vanish from the zip.
+function uniqueName(name, taken) {
+  let out = name;
+  for (let n = 2; taken.has(out.toLowerCase()); n++) out = name.replace(/\.mp4$/, `-${n}.mp4`);
+  taken.add(out.toLowerCase());
+  return out;
 }
 
 async function muxOne(ff, video, audio) {
@@ -219,12 +228,14 @@ async function run() {
     const ff = await loadFfmpeg();
     const zip = new JSZip();
     const failed = [];
+    const taken = new Set();
     let done = 0;
     for (let i = 0; i < pairs.length; i++) {
       const { video, audio } = pairs[i];
       els.status.textContent = `Muxing ${i + 1}/${pairs.length}: ${video.name}`;
       try {
-        zip.file(outName(video.name), await muxOne(ff, video, audio));
+        const blob = await muxOne(ff, video, audio);
+        zip.file(uniqueName(outName(video.name), taken), blob);
         done += 1;
       } catch (err) {
         failed.push(video.name);
