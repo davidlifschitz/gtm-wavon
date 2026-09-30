@@ -1,0 +1,13 @@
+{
+  "name": "gtm-wavon",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "jszip": "^3.10.1",
+    "vitest": "^2.1.9"
+  }
+}
